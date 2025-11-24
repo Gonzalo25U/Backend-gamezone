@@ -2,6 +2,7 @@ package com.example.crudgame_z.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,35 +25,39 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> {})  // ← habilita CORS
+                .cors(cors -> {})
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
+                        // Endpoints públicos
                         .requestMatchers("/auth/**").permitAll()
-
                         .requestMatchers("/setup/create-admin").permitAll()
 
-                        // ADMIN
-                        .requestMatchers("/products/**").hasRole("ADMIN")
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        // Productos → GET accesible para cualquier usuario autenticado
+                        .requestMatchers(HttpMethod.GET, "/products/**").authenticated()
 
-                        // PÚBLICO
-                        .requestMatchers("/products", "/products/*").permitAll()
+                        // Productos → POST, PUT, DELETE solo admin
+                        .requestMatchers(HttpMethod.POST, "/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
+
+                        // Admin panel
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
 
                         // Swagger
                         .requestMatchers("/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html").permitAll()
+                                         "/swagger-ui/**",
+                                         "/swagger-ui.html").permitAll()
 
+                        // Cualquier otro endpoint requiere autenticación
                         .anyRequest().authenticated()
-
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // ← AQUI AGREGAMOS TU CORS COMPATIBLE
+    // Configuración CORS
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
