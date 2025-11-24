@@ -8,11 +8,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class SecurityConfig {
@@ -26,28 +23,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ← HABILITAMOS CORS
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> {})  // ← habilita CORS
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
-                        // --- AUTORIZACIONES ---
                         .requestMatchers("/auth/**").permitAll()
 
-                        // Solo admin puede usar endpoints críticos
+                        .requestMatchers("/setup/create-admin").permitAll()
+
+                        // ADMIN
                         .requestMatchers("/products/**").hasRole("ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                        // Todos pueden ver productos
+                        // PÚBLICO
                         .requestMatchers("/products", "/products/*").permitAll()
 
-                        // PERMITIR SOLO MIENTRAS CREAS EL ADMIN
-                        .requestMatchers("/setup/create-admin").permitAll()
-
                         // Swagger
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html").permitAll()
 
-                        // Cualquier otra ruta requiere estar logueado
                         .anyRequest().authenticated()
 
                 )
@@ -56,30 +52,19 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🟦 CONFIGURACIÓN DE CORS
+    // ← AQUI AGREGAMOS TU CORS COMPATIBLE
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-
-        // ORÍGENES PERMITIDOS
-        config.setAllowedOrigins(List.of(
-                "http://localhost:3000",          // FRONT-END LOCAL
-                "https://gamezone-frontend.onrender.com" // EJEMPLO: tu sitio en Render
-        ));
-
-        // MÉTODOS PERMITIDOS
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-
-        // HEADERS PERMITIDOS
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-
-        // PERMITE TOKEN / COOKIES
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-
-        return source;
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("*")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(false);
+            }
+        };
     }
 
     @Bean
