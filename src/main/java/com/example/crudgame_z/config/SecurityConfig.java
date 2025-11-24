@@ -34,7 +34,7 @@ public class SecurityConfig {
                         .requestMatchers("/setup/create-admin").permitAll()
 
                         // Productos → GET accesible para cualquier usuario autenticado
-                        .requestMatchers(HttpMethod.GET, "/products/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
 
                         // Productos → POST, PUT, DELETE solo admin
                         .requestMatchers(HttpMethod.POST, "/products/**").hasRole("ADMIN")
@@ -64,7 +64,7 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("*")
+                        .allowedOrigins("http://localhost:3000","https://frontend-gamezone.vercel.app/")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(false);
