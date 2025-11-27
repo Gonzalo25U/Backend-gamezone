@@ -9,11 +9,15 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
+// Permitir solicitudes desde cualquier origen
 @CrossOrigin(origins = "*")
+// Controlador para la autenticación (registro e inicio de sesión)
 public class AuthController {
 
+    // Servicio de autenticación
     private final AuthService authService;
 
+    // Inyección de dependencias a través del constructor
     public AuthController(AuthService authService) {
         this.authService = authService;
     }

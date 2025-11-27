@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Optional;
 import java.util.UUID;
 
+// Controlador para la configuración inicial del administrador
 @RestController
 @RequestMapping("/setup")
+// Permite crear un usuario administrador si no existe
 public class AdminSetupController {
 
     @Autowired
@@ -21,28 +23,32 @@ public class AdminSetupController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
+    // Crear usuario administrador
     @PostMapping("/create-admin")
     public ResponseEntity<?> createAdmin() {
-
+    
         Optional<User> adminExists = userRepository.findByEmail("admin@admin.com");
+        // Verificar si el administrador ya existe
         if (adminExists.isPresent()) {
+            // Retornar respuesta indicando que el admin ya existe
             return ResponseEntity.badRequest().body("El admin ya existe");
         }
-
+        // Crear nuevo usuario administrador
         User admin = new User();
         admin.setId(UUID.randomUUID());
         admin.setEmail("admin@admin.com");
         admin.setName("Administrador");
 
-        // contraseña: Admin123
+        // setear contraseña codificada
         admin.setPassword(passwordEncoder.encode("admin1234"));
 
-        admin.setRole(Role.ROLE_ADMIN); // <<--- Enum correcto
+        // Asignar rol de administrador
+        admin.setRole(Role.ROLE_ADMIN); 
 
-
+        // Guardar el administrador en la base de datos
         userRepository.save(admin);
 
+        // Retornar respuesta de éxito
         return ResponseEntity.ok("ADMIN creado correctamente");
     }
 }

@@ -34,7 +34,7 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- POSTGRESQL (SIN SCOPE) -->
+        <!-- POSTGRESQL -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -86,7 +86,7 @@
             <artifactId>hibernate-validator</artifactId>
         </dependency>
 
-        <!-- SWAGGER / OPENAPI -->
+        <!-- SWAGGER -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>

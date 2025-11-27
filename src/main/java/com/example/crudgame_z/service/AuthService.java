@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @Service
+// Servicio para la autenticación (registro e inicio de sesión)
 public class AuthService {
+
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -33,15 +35,16 @@ public class AuthService {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    // =========================================
-    //           REGISTRO
-    // =========================================
+    //REGISTRO
     public Map<String, Object> register(String name, String email, String password) {
+        // Verifica si el email ya está registrado
 
         if (userRepository.existsByEmail(email)) {
+                // Lanza una excepción de conflicto si el email ya existe
             throw new ConflictException("El email ya está registrado.");
         }
 
+        // Crear nuevo usuario
         User user = new User(
                 email,
                 passwordEncoder.encode(password),
@@ -49,10 +52,13 @@ public class AuthService {
                 Role.ROLE_USER
         );
 
+        // Guardar usuario en la base de datos
         userRepository.save(user);
 
+        // Generar token JWT para el nuevo usuario
         String token = jwtTokenProvider.generateToken(user.getId(), user.getEmail(), user.getRole());
 
+        // Retornar datos del usuario y el token
         return Map.of(
                 "message", "Usuario registrado con éxito",
                 "userId", user.getId(),
@@ -62,9 +68,8 @@ public class AuthService {
         );
     }
 
-    // =========================================
-    //               LOGIN
-    // =========================================
+    //LOGIN
+
     public Map<String, Object> login(String email, String password) {
 
         // Verifica credenciales
@@ -72,11 +77,15 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(email, password)
         );
 
+        // Buscar usuario por email
         User user = userRepository.findByEmail(email)
+        // Lanza una excepción si el usuario no es encontrado
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado."));
 
+                // Generar token JWT
         String token = jwtTokenProvider.generateToken(user.getId(), user.getEmail(), user.getRole());
 
+        // Retornar datos del usuario y el token
         return Map.of(
                 "userId", user.getId(),
                 "email", user.getEmail(),

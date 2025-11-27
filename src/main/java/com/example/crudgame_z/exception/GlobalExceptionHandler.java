@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+// Manejador global de excepciones para la aplicación
 public class GlobalExceptionHandler {
 
     // ❌ Validaciones con @Valid
@@ -52,6 +53,7 @@ public class GlobalExceptionHandler {
         error.put("error", "Error interno del servidor");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
+    // ❌ Manejo de ForbiddenException
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<Map<String, String>> handleForbidden(ForbiddenException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)

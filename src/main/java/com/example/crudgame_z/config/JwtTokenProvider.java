@@ -26,14 +26,12 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    // ==================================
     // GENERAR TOKEN
-    // ==================================
     public String generateToken(UUID userId, String email, Role role) {
 
         return Jwts.builder()
                 .setSubject(email)
-                .claim("userId", userId.toString())   // Cambiado: "id" → "userId"
+                .claim("userId", userId.toString())
                 .claim("role", role.name())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
@@ -41,9 +39,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // ==================================
     // VALIDAR TOKEN
-    // ==================================
     public Boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -58,31 +54,23 @@ public class JwtTokenProvider {
         }
     }
 
-    // ==================================
     // OBTENER EMAIL
-    // ==================================
     public String getEmailFromToken(String token) {
         return getAllClaims(token).getSubject();
     }
 
-    // ==================================
     // OBTENER USER ID (UUID)
-    // ==================================
     public UUID getUserIdFromToken(String token) {
         String idString = getAllClaims(token).get("userId", String.class);
         return UUID.fromString(idString);
     }
 
-    // ==================================
-    // OBTENER ROL (opcional)
-    // ==================================
+    // OBTENER ROL 
     public String getRoleFromToken(String token) {
         return getAllClaims(token).get("role", String.class);
     }
 
-    // ==================================
     // OBTENER TODOS LOS CLAIMS
-    // ==================================
     private Claims getAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
