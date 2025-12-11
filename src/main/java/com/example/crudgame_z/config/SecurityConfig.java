@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -33,23 +35,29 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/setup/create-admin").permitAll()
 
-                        // Productos → GET accesible para cualquier usuario autenticado
+                        // Productos → GET accesible a todos
                         .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
 
-                        // Productos → POST, PUT, DELETE solo admin
+                        // Productos → solo admin puede modificar
                         .requestMatchers(HttpMethod.POST, "/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
 
-                        // Admin panel
+
+                        // CRUD de Usuarios SOLO ADMIN
+                        .requestMatchers("/api/admin/users/**").hasRole("ADMIN")
+
+                        // Panel admin general
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                        // Swagger
-                        .requestMatchers("/v3/api-docs/**",
-                                         "/swagger-ui/**",
-                                         "/swagger-ui.html").permitAll()
+                        // Swagger público
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
 
-                        // Cualquier otro endpoint requiere autenticación
+                        // Cualquier otro endpoint requiere estar autenticado
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -64,7 +72,10 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000","https://frontend-gamezone.vercel.app/")
+                        .allowedOrigins(
+                                "http://localhost:3000",
+                                "https://frontend-gamezone.vercel.app/"
+                        )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(false);
